@@ -24,6 +24,9 @@ model User {
 
   properties Property[]
   rentals Rental[]
+
+  verification Verification?
+  reviews Review[]
 }
 
 model Property {
@@ -34,10 +37,14 @@ model Property {
   rent Int
   isAvailable Boolean @default(true)
 
+
   ownerId Int
   owner User @relation(fields: [ownerId], references: [id])
 
   rental Rental?
+
+  images PropertyImage[]
+  reviews Review[]
 }
 
 model Rental {
@@ -48,4 +55,38 @@ model Rental {
 
   tenant User @relation(fields: [tenantId], references: [id])
   property Property @relation(fields: [propertyId], references: [id])
+}
+
+model PropertyImage {
+  id Int @id @default(autoincrement())
+  imageUrl String
+  propertyId Int
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+model Verification {
+  id Int @id @default(autoincrement())
+  documentUrl String
+  status VerificationStatus @default(PENDING)
+
+  userId Int @unique
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+  rating Int
+  comment String
+
+  userId Int
+  propertyId Int
+
+  user User @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
 }

@@ -1,10 +1,11 @@
 console.log("server running");
+import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth";
 import propertyRoutes from "./routes/property";
 
-
+dotenv.config();
 const app = express();
 
 app.use(express.json());
