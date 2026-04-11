@@ -54,7 +54,7 @@ export const addProperty = async (req : AuthRequest, res : Response) =>  {
 
     res.status(201).json({
         message : "property added successfully",
-        property : propertWithImages
+        property : propertyWithImages
       }
     );
 
@@ -223,5 +223,38 @@ export const addReview = async (req : AuthRequest, res : Response) => {
 res.json(500).json({
   message : "Failed to add review"
 })
+  }
+}
+
+//get by id
+export const getPropertyById = async (req : Request, res : Response ) => {
+  try{
+    const id = Number(req.params.id);
+    const property = await prisma.property.findUnique({
+      where : {id},
+      include : {
+        owner : {
+          select : {
+            id : true,
+            name : true,
+          },
+        },
+        images : true,
+      },
+    }),
+
+    if(!property){
+      return res.status(404).json({
+        message : "Property not found",
+      });
+    }
+    res.json(property);
+
+  } catch(err){
+    console.log("Erroe fetching property : ", err);
+    res.status(500).json({
+      message : "Failed to fetch property",
+    });
+    
   }
 }

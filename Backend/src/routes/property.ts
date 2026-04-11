@@ -1,6 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
-import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty} from "../controllers/propertyController";
+import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty, getPropertyById} from "../controllers/propertyController";
 import upload from "../middleware/upload";
  
 const router = express.Router();
@@ -9,5 +9,6 @@ router.get("/", getProperties);
 router.post("/rent/:id", authMiddleware, rentProperty);
 router.get("/owner", authMiddleware, getOwnerProperties);
 router.get("/search", searchProperty);
+router.get("/:id", getPropertyById);
 
 export default router;
