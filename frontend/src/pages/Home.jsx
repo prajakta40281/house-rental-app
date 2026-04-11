@@ -1,77 +1,150 @@
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import PropertyCard from "../components/PropertyCard";
 import API from "../services/api";
+import homeLogo from "../assets/houseLogo.svg";
 
-function Home(){
-    const [properties, setProperties] = useState([]);
-    const [loading, setLoading] = useState(true);
+function Home() {
+  const [properties, setProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    const fetchProperties = async () => {
-        try{
-           
-            const res = await API.get("/property");
-            setProperties(res.data);
-            
+  // search + filters
+  const [location, setLocation] = useState("");
+  const [minRent, setMinRent] = useState("");
+  const [maxRent, setMaxRent] = useState("");
 
+  const [results, setResults] = useState([]);
 
+  // fetch all properties (for recommended)
+  const fetchProperties = async () => {
+    try {
+      const res = await API.get("/property");
+      setProperties(res.data);
+    } catch (err) {
+      console.error("Error fetching properties", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        } catch(err){
+  useEffect(() => {
+    fetchProperties();
+  }, []);
 
-            console.error("Error fetching properties", err);
-        } finally {
-          setLoading(false);
-        }
-    };
-    useEffect(() => {
-        fetchProperties();
-    },[]);
+  //  filter search
+  const handleSearch = async () => {
+    try {
+      const res = await API.get("/property/search", {
+        params: {
+          location: location || undefined,
+          minRent: minRent || undefined,
+          maxRent: maxRent || undefined,
+        },
+      });
 
-    if(loading){
-        return (
-          <div className = "min-h-screen flex items-center justify-center">
-            <p className = "text-gray-500">Loading properties...</p>
-          </div>
+      setResults(res.data);
+    } catch (err) {
+      console.error("Search failed", err);
+    }
+  };
 
-        )
+  // clear search
+  const handleClear = () => {
+    setResults([]);
+    setLocation("");
+    setMinRent("");
+    setMaxRent("");
+  };
 
-      }
+  // decide what to show
+  const displayProperties =
+    results.length > 0 ? results : properties.slice(0, 3);
 
-    if(properties.length === 0){
-        return (
-          <div className = "min-h-screen flex items-center justify-center">
-            <p className = "text-gray-500">No properties available</p>
-          </div>
-        )
-      }
-
-
-
+  if (loading) {
     return (
-         <div className="min-h-screen bg-gray-50 p-6">
-          
-      
-      <h1 className="text-2xl font-semibold text-gray-800 mb-6">
-        Available Properties
-      </h1>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Loading properties...</p>
+      </div>
+    );
+  }
 
-      
+  return (
+    <div className="min-h-screen bg-gray-50 p-6">
 
-      
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {properties.map((property) => (
-          <PropertyCard
-            key={property.id}
-            id = {property.id}
-            title={property.title}
-            location={property.location}
-            price={property.rent}
-            image={property.images?.[0]?.imageUrl}
+      {/*  SEARCH */}
+      <div className="mb-10 text-center">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4 flex justify-center items-center gap-2">
+          Find Your Perfect Home
+          <img src={homeLogo} alt="logo" className="w-10 h-10" />
+        </h1>
+
+        {/* FILTERS */}
+        <div className="flex flex-wrap justify-center gap-2">
+
+          <input
+            type="text"
+            placeholder="Location"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="border px-3 py-2 rounded-lg"
           />
-        ))}
+
+          <input
+            type="number"
+            placeholder="Min Rent"
+            value={minRent}
+            onChange={(e) => setMinRent(e.target.value)}
+            className="border px-3 py-2 rounded-lg w-32"
+          />
+
+          <input
+            type="number"
+            placeholder="Max Rent"
+            value={maxRent}
+            onChange={(e) => setMaxRent(e.target.value)}
+            className="border px-3 py-2 rounded-lg w-32"
+          />
+
+          <button
+            onClick={handleSearch}
+            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg"
+          >
+            Search
+          </button>
+
+          <button
+            onClick={handleClear}
+            className="text-gray-500"
+          >
+            Clear
+          </button>
+
+        </div>
       </div>
 
+      {/* 🔥 HEADING */}
+      <h2 className="text-xl font-semibold mb-6">
+        {results.length > 0 ? "Search Results" : "Recommended"}
+      </h2>
+
+      {/* NO RESULTS */}
+      {results.length === 0 && (location || minRent || maxRent) ? (
+        <p className="text-gray-500">No properties found</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {displayProperties.map((property) => (
+            <PropertyCard
+              key={property.id}
+              id={property.id}
+              title={property.title}
+              location={property.location}
+              price={property.rent}
+              image={property.images?.[0]?.imageUrl}
+            />
+          ))}
+        </div>
+      )}
     </div>
-    );
-};
+  );
+}
+
 export default Home;

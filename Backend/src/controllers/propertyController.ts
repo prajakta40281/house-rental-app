@@ -101,6 +101,20 @@ export const getProperties = async (req : Request, res : Response) => {
 export const rentProperty = async (req : AuthRequest, res : Response) => {
     try{
      const propertyId = Number(req.params.id);
+
+     const property = await prisma.property.findUnique({
+      where : {id : propertyId}
+     });
+     if(!property){
+      return res.status(404).json({
+        message : "Property not found"
+      });
+     }
+     if(!property.isAvailable){
+      return res.status(400).json({
+        message : "Property already rented"
+      });
+     }
      const rental = await prisma.rental.create({
          data : {
             tenantId : req.userId!,
@@ -241,7 +255,7 @@ export const getPropertyById = async (req : Request, res : Response ) => {
         },
         images : true,
       },
-    }),
+    })
 
     if(!property){
       return res.status(404).json({
@@ -257,4 +271,33 @@ export const getPropertyById = async (req : Request, res : Response ) => {
     });
     
   }
+}
+
+// get Rented Properties
+export const getRentedProperties = async (req : AuthRequest, res : Response) => {
+  try {
+    const rentals = await prisma.rental.findMany({
+      where: {
+        tenantId : req.userId
+      },
+      include : {
+        property : {
+          include : {
+            images : true,
+            owner : {
+              select : {name : true}
+            }
+          }
+        }
+      }
+    });
+    res.json(rentals);
+  } catch(err){
+    res.status(500).json({
+      message : "Failed to fetch rented properties"
+    })
+
+  }
+
+    
 }

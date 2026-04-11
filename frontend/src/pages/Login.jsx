@@ -20,11 +20,16 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await API.post("/auth/login", form);
+      const res = await API.post("/auth/signin", form);
       localStorage.setItem("token", res.data.token);
       window.location.href = "/";
     } catch (err) {
-      alert("Login failed");
+     console.error("Login failed", err);
+     if (err.response && err.response.data && err.response.data.message) {
+    alert(err.response.data.message); 
+  } else {
+    alert("Something went wrong");
+  }
     }
   };
 

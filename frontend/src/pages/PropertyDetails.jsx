@@ -50,6 +50,34 @@ const scrollRight = () => {
     }
 
 
+    const handleRent = async () => {
+      try{
+        const token = localStorage.getItem("token");
+
+        if(!token){
+          alert("Please login first");
+          window.location.href = "/login";
+          return;
+        }
+        await API.post(
+          `/property/rent/${id}`,
+          {},
+          {
+            headers : {
+              Authorization : `Bearer ${token}`,
+            },
+          }
+
+        );
+        alert("Property rented successfully");
+
+        setProperty({...property, isAvailable : false});
+      } catch(err){
+        console.error("Rent failed", err);
+        alert("Failed to rent property");
+      }
+    }
+
 
     return (
     <div className="min-h-screen  bg-gray-50 p-6">
@@ -119,9 +147,17 @@ const scrollRight = () => {
           )}
 
           {/* Button */}
-          <button className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded-lg">
-            Rent Now
-          </button>
+         <button
+            onClick={handleRent}
+            disabled={!property.isAvailable}
+            className={`mt-4 px-6 py-2 rounded-lg text-white ${
+            property.isAvailable
+           ? "bg-yellow-500 hover:bg-yellow-600"
+          : "bg-gray-400 cursor-not-allowed"
+  }`}
+>
+  {property.isAvailable ? "Rent Now" : "Rented"}
+</button>
 
         </div>
 

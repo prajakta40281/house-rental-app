@@ -21,7 +21,7 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      await API.post("/auth/register", form);
+      await API.post("/auth/signup", form);
       alert("Registered successfully");
       window.location.href = "/login";
     } catch (err) {

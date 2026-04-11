@@ -70,6 +70,7 @@ export const signin = async (req : Request, res : Response) => {
     } catch(err){
         res.status(500).json({
         error : "Signin failed"
+    
         });
         
     }
