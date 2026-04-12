@@ -129,7 +129,8 @@ export const rentProperty = async (req : AuthRequest, res : Response) => {
 
      res.status(201).json({
         message : "Property rented",
-        rental
+        rental,
+        ownerId : property.ownerId
      });
     } catch(err){
       res.status(500).json({
@@ -147,13 +148,24 @@ export const getOwnerProperties = async (req : AuthRequest, res : Response) => {
                 ownerId : req.userId
             },
             include : {
-              images : true
+              images : true,
+              rentals : {
+                include : {
+                  tenant : {
+                    select : {
+                      name : true,
+                      email : true
+                    }
+                  }
+                }
+              }
             }
         });
         res.json(properties);
     } catch(err){
       res.status(500).json({
-        message : "failed to fetch properties"
+        message : "failed to fetch properties",
+        error : err
       });
     }
 };
@@ -300,4 +312,36 @@ export const getRentedProperties = async (req : AuthRequest, res : Response) => 
   }
 
     
+}
+
+//Delete Property
+export const deleteProperty = async (req : AuthRequest, res : Response) => {
+  try{
+    const propertyId = Number(req.params.id);
+    const property = await prisma.property.findUnique({
+      where : {id : propertyId}
+    });
+    if(!property){
+      return res.status(404).json({
+        message : "Property not found"
+      });
+    }
+    if(property.ownerId !== req.userId){
+      return res.status(403).json({
+        message : "Not authorized"
+      })
+    }
+    await prisma.property.delete({
+      where : {id : propertyId}
+    });
+    res.json({
+      message : "Property deleted"
+    })
+
+  } catch(err){
+    res.status(500).json({
+      message : "Failed to delete property"
+    })
+
+  }
 }

@@ -25,6 +25,7 @@ export const authMiddleware = (
         ) as any;
 
         req.userId = decoded.userId;
+        console.log("DECODED:", decoded);
         
         next();
     } catch {

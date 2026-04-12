@@ -1,12 +1,14 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import API from "../services/api";
+import {useNavigate} from "react-router-dom";
 
 function PropertyDetails(){
     const { id } = useParams();
 
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const fetchProperty = async () => {
         try {
@@ -70,6 +72,7 @@ const scrollRight = () => {
 
         );
         alert("Property rented successfully");
+        navigate("/dashboard");
 
         setProperty({...property, isAvailable : false});
       } catch(err){

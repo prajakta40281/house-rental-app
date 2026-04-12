@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
 import PropertyDetails from "./pages/PropertyDetails";
+import Dashboard from "./pages/Dashboard";
+import AddProperty from "./pages/AddProperty";
 // import './App.css'
 
 function App() {
@@ -19,7 +21,8 @@ function App() {
         <Route path = "/login" element = {<Login/>} />
         <Route path = "/register" element = {<Register/>} />
         <Route path = "/property/:id" element = {<PropertyDetails/>}/>
-        
+        <Route path = "/dashboard" element = {<Dashboard/>} />
+        <Route path = "/add-property" element = {<AddProperty/>} />
         
 
 
