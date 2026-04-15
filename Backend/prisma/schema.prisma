@@ -37,11 +37,10 @@ model Property {
   rent Int
   isAvailable Boolean @default(true)
 
-
   ownerId Int
   owner User @relation(fields: [ownerId], references: [id])
 
-  rental Rental?
+  rentals Rental[]   
 
   images PropertyImage[]
   reviews Review[]

@@ -8,6 +8,15 @@ import cloudinary from "../lib/cloudinary";
 //add property
 export const addProperty = async (req : AuthRequest, res : Response) =>  {
   try {
+    const userId = Number(req.userId);
+    const verification = await prisma.verification.findUnique({
+      where : { userId }
+    });
+    if(!verification || verification.status !== "VERIFIED"){
+      return res.status(403).json({
+        message : "Access Denied : Please verify your identity first."
+      })
+    }
     const {title, location, size, rent, images} = req.body;
 
     const property = await prisma.property.create({
@@ -256,6 +265,11 @@ res.json(500).json({
 export const getPropertyById = async (req : Request, res : Response ) => {
   try{
     const id = Number(req.params.id);
+    if (!id || isNaN(id)) {
+  return res.status(400).json({
+    message: "Invalid property ID",
+  });
+}
     const property = await prisma.property.findUnique({
       where : {id},
       include : {
@@ -286,62 +300,164 @@ export const getPropertyById = async (req : Request, res : Response ) => {
 }
 
 // get Rented Properties
-export const getRentedProperties = async (req : AuthRequest, res : Response) => {
+export const getRentedProperties = async (req: AuthRequest, res: Response) => {
   try {
     const rentals = await prisma.rental.findMany({
       where: {
-        tenantId : req.userId
+        tenantId: Number(req.userId)
       },
-      include : {
-        property : {
-          include : {
-            images : true,
-            owner : {
-              select : {name : true}
-            }
+      include: {
+        property: {
+          include: {
+            images: true
           }
         }
       }
     });
+
     res.json(rentals);
-  } catch(err){
+
+  } catch (err) {
+    console.log("RENTED ERROR:", err);
     res.status(500).json({
-      message : "Failed to fetch rented properties"
-    })
-
-  }
-
-    
-}
-
-//Delete Property
-export const deleteProperty = async (req : AuthRequest, res : Response) => {
-  try{
-    const propertyId = Number(req.params.id);
-    const property = await prisma.property.findUnique({
-      where : {id : propertyId}
+      message: "Failed to fetch rented properties",
+      error: err
     });
-    if(!property){
-      return res.status(404).json({
-        message : "Property not found"
-      });
+  }
+};
+
+
+//delete property
+export const deleteProperty = async (req: AuthRequest, res: Response) => {
+  try {
+    const propertyId = Number(req.params.id);
+
+    // 1. Check if it exists and belongs to the user
+    const property = await prisma.property.findUnique({
+      where: { id: propertyId },
+    });
+
+    if (!property) {
+      return res.status(404).json({ message: "Property not found" });
     }
-    if(property.ownerId !== req.userId){
-      return res.status(403).json({
-        message : "Not authorized"
+
+    if (property.ownerId !== req.userId) {
+      return res.status(403).json({ message: "Not authorized to delete this" });
+    }
+
+    // 2. Perform the cleanup
+    // We use a transaction so it's all or nothing
+    await prisma.$transaction([
+      // Delete images first
+      prisma.propertyImage.deleteMany({ where: { propertyId } }),
+      
+      // Delete reviews
+      prisma.review.deleteMany({ where: { propertyId } }),
+      
+      // Delete rentals (deleteMany won't crash if the property isn't rented)
+      prisma.rental.deleteMany({ where: { propertyId } }),
+      
+      // Finally delete the property
+      prisma.property.delete({ where: { id: propertyId } }),
+    ]);
+
+    return res.json({ message: "Property deleted successfully" });
+
+  } catch (err) {
+    // Log the EXACT error to your terminal so you can see it
+    console.error("CRITICAL DELETE ERROR:", err);
+    
+    return res.status(500).json({ 
+      message: "Internal Server Error", 
+      details: err instanceof Error ? err.message : "Check server logs" 
+    });
+  }
+};
+
+// verification controller
+export const verifyUser = async (req : AuthRequest, res : Response) => {
+  try{
+    console.log("Multer File Object:", req.file);
+    if(!req.file){
+      return res.status(400).json({
+        message : "Please upload an ID document"
       })
     }
-    await prisma.property.delete({
-      where : {id : propertyId}
+
+    // 1. Convert the Buffer to a Base64 string that Cloudinary understands
+    const fileBase64 = req.file.buffer.toString("base64");
+    const fileUri = `data:${req.file.mimetype};base64,${fileBase64}`;
+
+    // 2. Upload the Data URI instead of req.file.path
+    const result = await cloudinary.uploader.upload(fileUri, {
+      folder: "rentify_verifications",
+    });
+
+    console.log("Cloudinary Upload Success:", result.secure_url);
+    //set status verified
+    const verification = await prisma.verification.upsert({
+      where : {userId : Number(req.userId)},
+      
+      
+      update : {
+        documentUrl : result.secure_url,
+        
+        status : "VERIFIED",
+
+      },
+      
+      create : {
+        userId : Number(req.userId),
+        documentUrl : result.secure_url,
+        status : "VERIFIED"
+      }
+
     });
     res.json({
-      message : "Property deleted"
-    })
+      message : "identity verified successfully",
+      verification
 
+    })
+   
   } catch(err){
     res.status(500).json({
-      message : "Failed to delete property"
+      message : "Verification failed",
+      error : err
+      
     })
+    console.error("verification error :" ,err);
 
   }
+}
+
+
+// get me
+export const getMe = async (req : AuthRequest, res : Response) => {
+  try{
+    const user = await prisma.user.findUnique({
+      where : {id : Number(req.userId)},
+      include : {
+        verification : true
+      }
+    });
+    if(!user){
+      return res.status(404).json({
+        message : "User not found"
+      })
+    }
+    const { password, ...userWithoutPassword } = user;
+    return res.json(userWithoutPassword);
+
+
+
+
+
+  } catch(err){
+    console.error("GET_ME_ERROR:", err);
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+
+  
 }

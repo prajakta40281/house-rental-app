@@ -7,6 +7,7 @@ import Navbar from "./components/Navbar";
 import PropertyDetails from "./pages/PropertyDetails";
 import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
+import Verification from "./pages/Verification";
 // import './App.css'
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path = "/property/:id" element = {<PropertyDetails/>}/>
         <Route path = "/dashboard" element = {<Dashboard/>} />
         <Route path = "/add-property" element = {<AddProperty/>} />
+        <Route path="/verification" element={<Verification />} />
         
 
 

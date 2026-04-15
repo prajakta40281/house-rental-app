@@ -1,16 +1,23 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
-import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty, getPropertyById, getRentedProperties, deleteProperty} from "../controllers/propertyController";
+import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty, getPropertyById, getRentedProperties, deleteProperty, verifyUser, getMe} from "../controllers/propertyController";
 import upload from "../middleware/upload";
  
 const router = express.Router();
-router.post("/add",authMiddleware, upload.array("images",5), addProperty);
+
+router.get("/me", authMiddleware, getMe);
+router.post("/verify", authMiddleware, upload.single("document"), verifyUser);
+router.post("/add", authMiddleware, upload.array("images", 5), addProperty);
 router.get("/", getProperties);
-router.post("/rent/:id", authMiddleware, rentProperty);
+
+// static routes
 router.get("/owner", authMiddleware, getOwnerProperties);
+router.get("/rented", authMiddleware, getRentedProperties); // Moved Up
 router.get("/search", searchProperty);
-router.get("/:id", getPropertyById);
-router.get("/rented", authMiddleware, getRentedProperties);
+
+// Dynamic routes (params) 
+router.post("/rent/:id", authMiddleware, rentProperty);
+router.get("/:id", getPropertyById); 
 router.delete("/:id", authMiddleware, deleteProperty);
 
 export default router;

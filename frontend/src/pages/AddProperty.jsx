@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import API from "../services/api";
 import { useNavigate } from "react-router-dom";
 function AddProperty(){
@@ -16,6 +16,33 @@ function AddProperty(){
             [e.target.name]: e.target.value
         });
     };
+
+    const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        // We use the /me route to check verification status
+        const res = await API.get("/property/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (res.data.verification?.status !== "VERIFIED") {
+          alert("You must verify your identity before adding a property.");
+          navigate("/verification"); // Redirect to the new page
+        }
+      } catch (err) {
+        console.error("Auth check failed", err);
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    checkUserStatus();
+  }, [navigate]);
+
+  if (checking) return <div className="p-10 text-center">Checking authorization...</div>;
 
     const handleImageChange = (e) => {
         setImages(e.target.files);

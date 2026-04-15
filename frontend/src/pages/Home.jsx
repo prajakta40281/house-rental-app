@@ -121,7 +121,7 @@ function Home() {
         </div>
       </div>
 
-      {/* 🔥 HEADING */}
+      {/* HEADING */}
       <h2 className="text-xl font-semibold mb-6">
         {results.length > 0 ? "Search Results" : "Recommended"}
       </h2>

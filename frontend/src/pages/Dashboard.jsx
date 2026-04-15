@@ -85,6 +85,12 @@ useEffect(() => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-10">
           {owned.map((property) => (
   <div key={property.id}>
+    {/* THE RENTED BADGE */}
+    {!property.isAvailable && (
+      <span className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded uppercase z-10">
+        Rented
+      </span>
+    )}
 
     <PropertyCard
       id={property.id}
