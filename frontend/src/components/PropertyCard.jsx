@@ -3,7 +3,7 @@ const PropertyCard = ({ id, title, location, price, image }) => {
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition">
       
       {/* Image */}
-      <div className="h-48 bg-gray-200">
+      <div className="h-72 bg-gray-200">
         {image && (
           <img
             src={image}

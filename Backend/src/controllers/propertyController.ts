@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import { AuthRequest } from "../types/express";
 import multer from "multer";
 import cloudinary from "../lib/cloudinary";
+import { getVector } from "../utils/embeddings";
 
 
 //add property
@@ -17,7 +18,7 @@ export const addProperty = async (req : AuthRequest, res : Response) =>  {
         message : "Access Denied : Please verify your identity first."
       })
     }
-    const {title, location, size, rent, images} = req.body;
+    const {title, location, size, rent, images, description} = req.body;
 
     const property = await prisma.property.create({
         data : {
@@ -25,10 +26,20 @@ export const addProperty = async (req : AuthRequest, res : Response) =>  {
             location,
             size : Number(size),
             rent : Number(rent),
-            ownerId : Number(req.userId!)
+            ownerId : Number(req.userId!),
+            description: description || "No description provided",
 
         }
     });
+
+    const textToEmbed = `${title} in ${location}. ${description || ""}`;
+    const vector = await getVector(textToEmbed);
+
+    await prisma.$executeRawUnsafe(
+      `UPDATE "Property" SET embedding = $1::vector WHERE id = $2`,
+      JSON.stringify(vector),
+      property.id
+    );
     
   console.log("NAME:", process.env.CLOUD_NAME);
   console.log("KEY:", process.env.CLOUD_API_KEY);
@@ -79,30 +90,26 @@ export const addProperty = async (req : AuthRequest, res : Response) =>  {
 };
 
 //view available properties
-export const getProperties = async (req : Request, res : Response) => {
-    try{
-     const properties = await prisma.property.findMany({
-        where : {
-            isAvailable : true
-        },
-        include : {
-            owner :{
-                select : {
-                    id : true,
-                    name : true
+export const getProperties = async (req: Request, res: Response) => {
+    try {
+        const properties = await prisma.property.findMany({
+            where: { isAvailable: true },
+            select: {
+                id: true,
+                title: true,
+                location: true,
+                rent: true,
+                // Comment out description for a second if the red line won't go away
+                description: true, 
+                images: {
+                    select: { imageUrl: true }
                 }
-            },
-            images : true
-        }
-
-     });
-
-     res.json(properties);
-
-    } catch(err){
-      res.status(500).json({
-        message : "Failed to fetch properties"
-      });
+            }
+        });
+        res.json(properties);
+    } catch (err) {
+        console.error("Backend Error:", err);
+        res.status(500).json({ message: "Check backend console for error" });
     }
 };
 
@@ -262,43 +269,30 @@ res.json(500).json({
 }
 
 //get by id
-export const getPropertyById = async (req : Request, res : Response ) => {
-  try{
-    const id = Number(req.params.id);
-    if (!id || isNaN(id)) {
-  return res.status(400).json({
-    message: "Invalid property ID",
-  });
-}
-    const property = await prisma.property.findUnique({
-      where : {id},
-      include : {
-        owner : {
-          select : {
-            id : true,
-            name : true,
-          },
-        },
-        images : true,
-      },
-    })
+export const getPropertyById = async (req: Request, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+        const property = await prisma.property.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                title: true,
+                location: true,
+                rent: true,
+                description: true,
+                owner: {
+                    select: { name: true }
+                },
+                images: true
+            }
+        });
 
-    if(!property){
-      return res.status(404).json({
-        message : "Property not found",
-      });
+        if (!property) return res.status(404).json({ message: "Not found" });
+        res.json(property);
+    } catch (err) {
+        res.status(500).json({ message: "Error fetching property" });
     }
-    res.json(property);
-
-  } catch(err){
-    console.log("Erroe fetching property : ", err);
-    res.status(500).json({
-      message : "Failed to fetch property",
-    });
-    
-  }
-}
-
+};
 // get Rented Properties
 export const getRentedProperties = async (req: AuthRequest, res: Response) => {
   try {
@@ -461,3 +455,33 @@ export const getMe = async (req : AuthRequest, res : Response) => {
 
   
 }
+
+
+export const semanticSearch = async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query; 
+    
+    if (!query) return res.status(400).json({ message: "Search query required" });
+
+    
+    const queryVector = await getVector(query as string);
+
+    
+    // We calculate similarity as: 1 - (Cosine Distance)
+    const properties = await prisma.$queryRawUnsafe(`
+      SELECT 
+        p.id, p.title, p.location, p.rent, p.description,
+        1 - (p.embedding <=> $1::vector) AS similarity,
+        (SELECT "imageUrl" FROM "PropertyImage" WHERE "propertyId" = p.id LIMIT 1) as "mainImage"
+      FROM "Property" p
+      WHERE 1 - (p.embedding <=> $1::vector) > 0.35
+      ORDER BY similarity DESC
+      LIMIT 12;
+    `, JSON.stringify(queryVector));
+
+    res.json(properties);
+  } catch (error) {
+    console.error("Search Error:", error);
+    res.status(500).json({ message: "Search failed" });
+  }
+};

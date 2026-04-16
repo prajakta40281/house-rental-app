@@ -32,6 +32,7 @@ model User {
 model Property {
   id Int @id @default(autoincrement())
   title String
+  description String?
   location String
   size Int
   rent Int
@@ -44,6 +45,7 @@ model Property {
 
   images PropertyImage[]
   reviews Review[]
+  embedding Unsupported("vector(768)")?
 }
 
 model Rental {

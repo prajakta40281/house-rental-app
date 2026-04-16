@@ -102,11 +102,11 @@ function PropertyDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="h-72 w-112 bg-gray-50 p-6 mx-auto ">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-md overflow-hidden">
 
         {/* IMAGE SECTION */}
-        <div className="relative h-72 bg-gray-200">
+        <div className="relative h-72  bg-gray-200">
 
           {/* LEFT BUTTON */}
           <button

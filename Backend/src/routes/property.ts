@@ -1,6 +1,6 @@
 import express from "express";
 import { authMiddleware } from "../middleware/authMiddleware";
-import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty, getPropertyById, getRentedProperties, deleteProperty, verifyUser, getMe} from "../controllers/propertyController";
+import {addProperty, getProperties, rentProperty, getOwnerProperties, searchProperty, getPropertyById, getRentedProperties, deleteProperty, verifyUser, getMe, semanticSearch} from "../controllers/propertyController";
 import upload from "../middleware/upload";
  
 const router = express.Router();
@@ -14,6 +14,7 @@ router.get("/", getProperties);
 router.get("/owner", authMiddleware, getOwnerProperties);
 router.get("/rented", authMiddleware, getRentedProperties); // Moved Up
 router.get("/search", searchProperty);
+router.get("/search/semantic", semanticSearch);
 
 // Dynamic routes (params) 
 router.post("/rent/:id", authMiddleware, rentProperty);
