@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-  origin: "https://your-frontend-url.vercel.app",
+  origin: "https://house-rental-app-iota.vercel.app",
   credentials: true
 }));
 
