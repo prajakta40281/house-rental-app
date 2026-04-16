@@ -9,7 +9,11 @@ dotenv.config();
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+
+app.use(cors({
+  origin: "https://your-frontend-url.vercel.app",
+  credentials: true
+}));
 
 app.use("/auth", authRoutes);
 app.use("/property", propertyRoutes);
