@@ -74,7 +74,7 @@ function Home() {
     setSemanticQuery("");
   };
 
-  
+  // showing 3 results at a time
   const displayProperties =
     results.length > 0 ? results : properties.slice(0, 3);
 
