@@ -3,7 +3,7 @@
 A full-stack property rental platform with AI-powered natural language search, built with a focus on type safety and scalable data architecture.
 
 ## 🚀 Live Demo
-[Add your deployed URL here]
+house-rental-app-iota.vercel.app
 
 ## 🏗️ Architecture & Engineering
 
