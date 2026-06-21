@@ -36,7 +36,7 @@ Rentify is built as a decoupled full-stack application with TypeScript across bo
 
 ### 1. Clone the Repository
 
-    git clone https://github.com/yourusername/Rentify.git
+    git clone https://github.com/prajakta40281/Rentify.git
     cd Rentify
 
 ### 2. Backend Setup
