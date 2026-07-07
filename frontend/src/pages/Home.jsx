@@ -96,7 +96,7 @@ function Home() {
           <img src={homeLogo} alt="logo" className="w-10 h-10" />
         </h1>
 
-        {/* 1. NEW AI SEARCH BAR (Placed before filters as requested) */}
+        {/* SEMANTIC SEARCH */}
         <div className="flex justify-center gap-2 mb-4 max-w-2xl mx-auto">
           <input
             type="text"
@@ -113,7 +113,7 @@ function Home() {
           </button>
         </div>
 
-        {/* 2. ORIGINAL FILTERS (Keep UI same only) */}
+        {/* TRADITIONAL SEARCH */}
         <div className="flex flex-wrap justify-center gap-2">
           <input
             type="text"
@@ -155,12 +155,12 @@ function Home() {
         </div>
       </div>
 
-      {/* HEADING */}
+     
       <h2 className="text-xl font-semibold mb-6">
         {results.length > 0 ? "Search Results" : "Recommended"}
       </h2>
 
-      {/* RESULTS GRID */}
+      
       {results.length === 0 && (location || minRent || maxRent || semanticQuery) ? (
         <p className="text-gray-500">No properties found</p>
       ) : (
@@ -172,7 +172,7 @@ function Home() {
               title={property.title}
               location={property.location}
               price={property.rent}
-              // Handles standard images or mainImage from Raw SQL
+              
               image={property.images?.[0]?.imageUrl || property.mainImage}
             />
           ))}

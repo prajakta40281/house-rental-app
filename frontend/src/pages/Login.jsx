@@ -9,27 +9,30 @@ const Login = () => {
     password: "",
   });
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!form.email || !form.password) {
+      setError("Email and password are required");
+      return;
+    }
 
     try {
       const res = await API.post("/auth/signin", form);
       localStorage.setItem("token", res.data.token);
       window.location.href = "/";
     } catch (err) {
-     console.error("Login failed", err);
-     if (err.response && err.response.data && err.response.data.message) {
-    alert(err.response.data.message); 
-  } else {
-    alert("Something went wrong");
-  }
+      setError(err.response?.data?.message || "Login failed");
     }
   };
 
@@ -58,11 +61,14 @@ const Login = () => {
             onChange={handleChange}
           />
 
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
+
           <div className="pt-2">
             <Button type="submit">Login</Button>
           </div>
         </form>
-
       </div>
     </div>
   );

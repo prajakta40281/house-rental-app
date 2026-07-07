@@ -10,10 +10,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors({
-  origin: "https://house-rental-app-iota.vercel.app",
-  credentials: true
-}));
+app.use(cors());
 
 app.use("/auth", authRoutes);
 app.use("/property", propertyRoutes);

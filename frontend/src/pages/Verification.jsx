@@ -21,7 +21,7 @@ function Verification() {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("Verification successful!");
-      navigate("/add-property"); // Send them back to complete their listing
+      navigate("/add-property"); 
     } catch (err) {
       console.error(err);
       alert("Verification failed. Please try again.");
@@ -35,7 +35,7 @@ function Verification() {
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md">
         <h2 className="text-2xl font-bold mb-2">Identity Verification</h2>
         <p className="text-gray-600 mb-6">
-          To ensure safety on Rentify, please upload a clear photo of your ID or Aadhaar card.
+          To ensure safety on Rentify, please upload a clear document of your Tax invoice of Property  or Aadhaar card.
         </p>
 
         <form onSubmit={handleVerify}>

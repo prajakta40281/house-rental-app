@@ -2,30 +2,45 @@ import { useState } from "react";
 import API from "../services/api";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
   });
 
+  const [error, setError] = useState("");
+
   const handleChange = (e) => {
     setForm({
       ...form,
       [e.target.name]: e.target.value,
     });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!form.name || !form.email || !form.password) {
+      setError("All fields are required");
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+
     try {
       await API.post("/auth/signup", form);
-      alert("Registered successfully");
-      window.location.href = "/login";
+      navigate("/login");
     } catch (err) {
-      alert("Registration failed");
+      setError(err.response?.data?.message || "Registration failed");
     }
   };
 
@@ -63,20 +78,25 @@ const Register = () => {
             onChange={handleChange}
           />
 
+          {error && (
+            <p className="text-red-500 text-sm">{error}</p>
+          )}
+
           <div className="pt-2">
             <Button type="submit">Register</Button>
           </div>
 
         </form>
+
         <p className="text-sm text-gray-500 text-center mt-4">
-  Already have an account?{" "}
-  <span
-    className="text-yellow-600 cursor-pointer"
-    onClick={() => (window.location.href = "/login")}
-  >
-    Login
-  </span>
-</p>
+          Already have an account?{" "}
+          <span
+            className="text-yellow-600 cursor-pointer"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </span>
+        </p>
 
       </div>
     </div>

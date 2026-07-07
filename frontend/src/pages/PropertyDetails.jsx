@@ -59,7 +59,7 @@ function PropertyDetails() {
   }
 
  
-  const isRented = property.rentals && property.rentals.length > 0;
+  const isRented = !property.isAvailable;
 
  
   const handleRent = async () => {
@@ -85,14 +85,14 @@ function PropertyDetails() {
 
       alert("Property rented successfully");
 
-      // update UI instantly
+      
       setProperty({
         ...property,
         isAvailable: false,
         rentals: [{}],
       });
 
-      // optional navigation
+      
       navigate("/dashboard");
 
     } catch (err) {
@@ -108,7 +108,7 @@ function PropertyDetails() {
         {/* IMAGE SECTION */}
         <div className="relative h-72  bg-gray-200">
 
-          {/* LEFT BUTTON */}
+          
           <button
             onClick={scrollLeft}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-white shadow px-3 py-1 rounded-full"
@@ -116,7 +116,7 @@ function PropertyDetails() {
             ←
           </button>
 
-          {/* RIGHT BUTTON */}
+          
           <button
             onClick={scrollRight}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-white shadow px-3 py-1 rounded-full"
@@ -168,7 +168,7 @@ function PropertyDetails() {
             </p>
           )}
 
-          {/* RENT BUTTON */}
+          
           <button
             onClick={handleRent}
             disabled={isRented}

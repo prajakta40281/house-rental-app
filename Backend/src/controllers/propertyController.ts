@@ -89,7 +89,7 @@ export const addProperty = async (req : AuthRequest, res : Response) =>  {
 
 };
 
-//view available properties
+//view  properties
 export const getProperties = async (req: Request, res: Response) => {
     try {
         const properties = await prisma.property.findMany({
@@ -99,7 +99,7 @@ export const getProperties = async (req: Request, res: Response) => {
                 title: true,
                 location: true,
                 rent: true,
-                // Comment out description for a second if the red line won't go away
+                
                 description: true, 
                 images: {
                     select: { imageUrl: true }
@@ -187,13 +187,14 @@ export const getOwnerProperties = async (req : AuthRequest, res : Response) => {
 };
 
 
-// search-database filtering
+// search database filtering
 export const searchProperty = async (req: Request, res: Response) => {
   try {
     const { location, minRent, maxRent } = req.query;
 
     const properties = await prisma.property.findMany({
       where: {
+        isAvailable : true,
         location: location
           ? {
               contains: location as string,
@@ -326,7 +327,7 @@ export const deleteProperty = async (req: AuthRequest, res: Response) => {
   try {
     const propertyId = Number(req.params.id);
 
-    // 1. Check if it exists and belongs to the user
+    
     const property = await prisma.property.findUnique({
       where: { id: propertyId },
     });
@@ -339,26 +340,25 @@ export const deleteProperty = async (req: AuthRequest, res: Response) => {
       return res.status(403).json({ message: "Not authorized to delete this" });
     }
 
-    // 2. Perform the cleanup
-    // We use a transaction so it's all or nothing
+    
     await prisma.$transaction([
-      // Delete images first
+      
       prisma.propertyImage.deleteMany({ where: { propertyId } }),
       
-      // Delete reviews
+      
       prisma.review.deleteMany({ where: { propertyId } }),
       
-      // Delete rentals (deleteMany won't crash if the property isn't rented)
+      
       prisma.rental.deleteMany({ where: { propertyId } }),
       
-      // Finally delete the property
+      
       prisma.property.delete({ where: { id: propertyId } }),
     ]);
 
     return res.json({ message: "Property deleted successfully" });
 
   } catch (err) {
-    // Log the EXACT error to your terminal so you can see it
+   
     console.error("CRITICAL DELETE ERROR:", err);
     
     return res.status(500).json({ 
@@ -378,17 +378,17 @@ export const verifyUser = async (req : AuthRequest, res : Response) => {
       })
     }
 
-    // 1. Convert the Buffer to a Base64 string that Cloudinary understands
+   
     const fileBase64 = req.file.buffer.toString("base64");
     const fileUri = `data:${req.file.mimetype};base64,${fileBase64}`;
 
-    // 2. Upload the Data URI instead of req.file.path
+    
     const result = await cloudinary.uploader.upload(fileUri, {
       folder: "rentify_verifications",
     });
 
     console.log("Cloudinary Upload Success:", result.secure_url);
-    //set status verified
+    
     const verification = await prisma.verification.upsert({
       where : {userId : Number(req.userId)},
       
@@ -467,14 +467,14 @@ export const semanticSearch = async (req: Request, res: Response) => {
     const queryVector = await getVector(query as string);
 
     
-    // We calculate similarity as: 1 - (Cosine Distance)
+    // similarity : 1 - (Cosine Distance)
     const properties = await prisma.$queryRawUnsafe(`
       SELECT 
         p.id, p.title, p.location, p.rent, p.description,
         1 - (p.embedding <=> $1::vector) AS similarity,
         (SELECT "imageUrl" FROM "PropertyImage" WHERE "propertyId" = p.id LIMIT 1) as "mainImage"
       FROM "Property" p
-      WHERE 1 - (p.embedding <=> $1::vector) > 0.35
+      WHERE p."isAvailable" = true AND 1 - (p.embedding <=> $1::vector) > 0.35
       ORDER BY similarity DESC
       LIMIT 12;
     `, JSON.stringify(queryVector));

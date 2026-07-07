@@ -24,7 +24,7 @@ function Navbar() {
 
         {token && (
           <>
-            {/* Dashboard (light, not a button) */}
+            {/* Dashboard */}
             <span
               onClick={() => (window.location.href = "/dashboard")}
               className="text-gray-600 hover:text-yellow-600 cursor-pointer font-medium"
@@ -32,7 +32,7 @@ function Navbar() {
               Dashboard
             </span>
 
-            {/* Logout (main action) */}
+            {/* Logout */}
             <Button onClick={handleLogout}>
               Logout
             </Button>

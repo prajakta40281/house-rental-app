@@ -16,7 +16,7 @@ router.get("/rented", authMiddleware, getRentedProperties); // Moved Up
 router.get("/search", searchProperty);
 router.get("/search/semantic", semanticSearch);
 
-// Dynamic routes (params) 
+// Dynamic routes  
 router.post("/rent/:id", authMiddleware, rentProperty);
 router.get("/:id", getPropertyById); 
 router.delete("/:id", authMiddleware, deleteProperty);

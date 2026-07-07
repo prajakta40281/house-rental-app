@@ -8,8 +8,7 @@ export const getVector = async (text: string): Promise<number[]> => {
       model: "gemini-embedding-001" 
     });
 
-    // We use 'any' here as a quick bridge to bypass the strict version check
-    // while ensuring the 768 dimension instruction still reaches Google.
+    
     const request: any = {
       content: { 
         role: "user", 
