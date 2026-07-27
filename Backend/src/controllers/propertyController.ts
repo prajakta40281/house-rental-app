@@ -131,28 +131,37 @@ export const rentProperty = async (req : AuthRequest, res : Response) => {
         message : "Property already rented"
       });
      }
-     const rental = await prisma.rental.create({
-         data : {
+
+     
+     const [rental] = await prisma.$transaction([
+        prisma.rental.create({
+          data : {
             tenantId : req.userId!,
             propertyId : propertyId
-         }
-     });
-
-     await prisma.property.update({
-        where : {id : propertyId},
-        data : { isAvailable : false }
-     });
+          }
+        }),
+        prisma.property.update({
+          where : {id : propertyId},
+          data : { isAvailable : false }
+        }),
+     ]);
 
      res.status(201).json({
         message : "Property rented",
         rental,
         ownerId : property.ownerId
      });
-    } catch(err){
+    } catch(err : any){
+      
+      if (err?.code === "P2002") {
+        return res.status(409).json({
+          message : "This property was just rented by someone else. Please refresh and try another."
+        });
+      }
+      console.error("RENT_PROPERTY_ERROR:", err);
       res.status(500).json({
         message : "Failed to rent property"
       })
-      
     }
 };
 
